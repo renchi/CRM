@@ -184,7 +184,7 @@ $MenuFirst = 1;
           <img src="<?= SystemURLs::getRootPath() ?>/Images/CRM_50x50.png" alt="ChurchCRM Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
           <!-- logo for regular state and mobile devices -->
           <?php
-            $headerHTML = '<b>Church</b>CRM';
+            $headerHTML = '<b>CCF Munich</b> CRM';
             $sHeader = SystemConfig::getValue("sHeader");
             if (!empty($sHeader)) {
                 $headerHTML = html_entity_decode($sHeader, ENT_QUOTES);
