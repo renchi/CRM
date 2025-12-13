@@ -3,7 +3,7 @@
 describe("Family Reg", () => {
     it("Adam Family Registration", () => {
         cy.visit("external/register/");
-        cy.contains("Main St. Cathedral");
+        cy.contains("CCF Munich");
 
         // Step 1: Family Info
         cy.get("#familyName").type("Adam");
