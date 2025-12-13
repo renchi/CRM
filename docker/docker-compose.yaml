@@ -47,7 +47,7 @@ services:
     profiles: [test, ci]
     build:
       context: .
-      dockerfile: Dockerfile.churchcrm-apache-php8
+      dockerfile: Dockerfile.chito
       target: test
     image: churchcrm/crm:php8-debian
     ports:
