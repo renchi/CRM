@@ -28,7 +28,7 @@ services:
       context: .
       dockerfile: Dockerfile.churchcrm-apache-php8
       target: dev
-    image: churchcrm/crm:php8-debian-dev
+    image: churchcrm/crm:php:8.4-apache
     ports:
       - ${WEBSERVER_PORT:-80}:80
     volumes:
