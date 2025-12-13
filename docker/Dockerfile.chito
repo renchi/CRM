@@ -21,6 +21,20 @@ RUN apt-get update && \
         git \
     && rm -rf /var/lib/apt/lists/*
 
+# CHITO ADD-START
+# Clone the repository
+RUN git clone https://github.com/ChurchCRM/CRM.git /app
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies
+RUN npm ci
+
+# Run deploy script
+RUN npm run deploy
+# CHITO ADD-END
+
 # Install and configure PHP extensions
 RUN docker-php-ext-install -j$(nproc) xml exif pdo_mysql gettext iconv mysqli zip && \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
@@ -73,8 +87,6 @@ RUN /bin/bash -c "source /root/.nvm/nvm.sh && nvm install --lts && npm install -
 
 # CHITO ADDED
 FROM node:18
-
-WORKDIR /app
 
 # Copy package files first (for caching)
 COPY package*.json ./

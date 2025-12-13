@@ -76,6 +76,9 @@ npm run docker:dev:logs    # View container logs
 npm run test               # Run all Cypress tests
 npm run test:ui            # Interactive test runner
 npm run test:api           # API tests only
+
+# Chito added command
+docker compose -f docker/docker-compose.yaml --profile dev up -d
 ```
 
 ## Configuration
