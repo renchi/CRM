@@ -7,7 +7,8 @@ LABEL maintainer="george@dawouds.com"
 EXPOSE 80
 
 # For nodejs
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash - 
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+RUN apt-get install -y nodejs
 
 # Install common PHP dependencies
 RUN apt-get update && \
