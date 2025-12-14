@@ -6,6 +6,9 @@ LABEL maintainer="george@dawouds.com"
 
 EXPOSE 80
 
+# For nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash - 
+
 # Install common PHP dependencies
 RUN apt-get update && \
     apt-get install -y \
@@ -19,6 +22,7 @@ RUN apt-get update && \
         libmcrypt-dev \
         libjpeg-dev \
         git \
+        nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 # CHITO ADD-START
@@ -29,6 +33,7 @@ RUN git clone https://github.com/ChurchCRM/CRM.git /app
 WORKDIR /app
 
 # Install dependencies
+
 RUN npm ci
 
 # Run deploy script
