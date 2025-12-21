@@ -3,7 +3,7 @@ services:
     profiles: [dev, test, ci]
     image: mariadb
     ports:
-      - ${DATABASE_PORT:-3306}:3306
+      - "${DATABASE_PORT:-3306}:3306"
     env_file:
       - .env
     volumes:
@@ -18,32 +18,32 @@ services:
     profiles: [dev, test]
     image: mailhog/mailhog
     ports:
-      - ${MAILSERVER_PORT:-1025}:1025
-      - ${MAILSERVER_GUI_PORT:-8025}:8025
+      - "${MAILSERVER_PORT:-1025}:1025"
+      - "${MAILSERVER_GUI_PORT:-8025}:8025"
     hostname: crm-mailserver
-
-webserver-dev:
-  profiles: [dev]
-  image: chibor/docker-webserver-dev:latest
-  ports:
-    - "${WEBSERVER_PORT:-80}:80"
-  volumes:
-    - ../src:/var/www/html
-    - ..:/home/ChurchCRM
-  hostname: crm-webserver
-  env_file:
-    - .env
-  extra_hosts:
-    - "host.docker.internal:host-gateway"
-  depends_on:
-    database:
-      condition: service_healthy
+  
+  webserver-dev:
+    profiles: [dev]
+    image: chibor/docker-webserver-dev:latest
+    ports:
+      - "${WEBSERVER_PORT:-80}:80"
+    volumes:
+      - ../src:/var/www/html
+      - ..:/home/ChurchCRM
+    hostname: crm-webserver
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      database:
+        condition: service_healthy
 
   adminer:
     profiles: [dev]
     image: adminer
     environment:
-      - ADMINER_DEFAULT_SERVER=database
+      ADMINER_DEFAULT_SERVER: database
     ports:
-      - ${ADMINER_PORT:-8088}:8080
+      - "${ADMINER_PORT:-8088}:8080"
     hostname: crm-adminer
