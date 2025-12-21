@@ -24,6 +24,7 @@ services:
 
   webserver-dev:
     profiles: [dev]
+    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile.chito
