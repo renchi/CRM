@@ -1,0 +1,131 @@
+# ============================================================
+# Base PHP-Apache image with system and PHP dependencies
+# ============================================================
+FROM php:8.4-apache AS php-base
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Expose HTTP port
+EXPOSE 80
+
+# Install system dependencies (no dev tools here)
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        git \
+        curl \
+        ca-certificates \
+        libxml2-dev \
+        gettext \
+        locales \
+        locales-all \
+        libpng-dev \
+        libzip-dev \
+        libfreetype6-dev \
+        libjpeg-dev \
+    ; \
+    rm -rf /var/lib/apt/lists/*
+
+# Configure PHP extensions
+RUN set -eux; \
+    docker-php-ext-configure gd --with-freetype --with-jpeg; \
+    docker-php-ext-install -j"$(nproc)" \
+        xml \
+        exif \
+        pdo_mysql \
+        gettext \
+        iconv \
+        mysqli \
+        zip \
+        gd
+
+# Configure Apache
+# Expect this file in your build context: ./apache/default.conf
+COPY apache/default.conf /etc/apache2/apache2.conf
+RUN a2enmod rewrite
+
+# Configure PHP (production defaults with tuned limits)
+RUN set -eux; \
+    mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"; \
+    sed -i 's/^upload_max_filesize.*/upload_max_filesize = 2G/' "$PHP_INI_DIR/php.ini"; \
+    sed -i 's/^post_max_size.*/post_max_size = 2G/' "$PHP_INI_DIR/php.ini"; \
+    sed -i 's/^memory_limit.*/memory_limit = 2G/' "$PHP_INI_DIR/php.ini"; \
+    sed -i 's/^max_execution_time.*/max_execution_time = 120/' "$PHP_INI_DIR/php.ini"
+
+# Optional: make Apache serve from /var/www/html/public if ChurchCRM uses a public/ folder
+# ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+# RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/sites-available/*.conf
+
+
+# ============================================================
+# Node build stage (frontend assets)
+# ============================================================
+FROM node:22-bookworm AS frontend-builder
+
+WORKDIR /app
+
+# Only copy package files first for better layer caching
+COPY package*.json ./
+
+# Install dependencies in clean, reproducible way
+RUN npm ci
+
+# Copy the rest of the sources needed for build
+COPY . .
+
+# Build production assets (adjust if ChurchCRM uses another build script)
+RUN npm run deploy
+
+
+# ============================================================
+# Composer build stage (PHP dependencies)
+# ============================================================
+FROM composer:2 AS composer-builder
+
+WORKDIR /app
+
+# Copy only what Composer needs for dependency resolution
+COPY composer.json composer.lock ./
+
+# Install dependencies for production (no dev) and optimize autoloader
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --no-progress \
+    --prefer-dist \
+    --optimize-autoloader
+
+
+# ============================================================
+# Production image (default)
+#   docker build -t churchcrm/crm:php8-debian .
+# ============================================================
+FROM php-base AS production
+
+WORKDIR /var/www/html
+
+# Copy application source code
+COPY . .
+
+# Copy built frontend assets
+COPY --from=frontend-builder /app/public ./public
+# If ChurchCRM uses a different dist directory, adjust path above accordingly.
+
+# Copy installed PHP dependencies
+COPY --from=composer-builder /app/vendor ./vendor
+
+# Ensure required config file exists (adjust if this path differs)
+RUN set -eux; \
+    if [ -f docker/Config.php ]; then \
+        cp docker/Config.php src/Include/Config.php; \
+    fi
+
+# Set correct permissions for web server user
+RUN set -eux; \
+    chown -R www-data:www-data /var/www/html; \
+    find /var/www/html -type d -exec chmod 755 {} \; ; \
+    find /var/www/html -type f -exec chmod 644 {} \;
+
+# Default command: run Apache in foreground
+CMD ["apache2-foreground"]
