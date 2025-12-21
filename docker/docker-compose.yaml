@@ -27,7 +27,7 @@ services:
     platform: linux/amd64
     build:
       context: .
-      dockerfile: Dockerfile.chito
+      dockerfile: Dockerfile.ccf
       target: dev
     ports:
       - ${WEBSERVER_PORT:-80}:80
@@ -47,7 +47,7 @@ services:
     profiles: [test, ci]
     build:
       context: .
-      dockerfile: Dockerfile.chito
+      dockerfile: Dockerfile.ccf
       target: test
     image: churchcrm/crm:php8-debian
     ports:
