@@ -24,7 +24,6 @@ services:
 
   webserver-dev:
     profiles: [dev]
-    platform: linux/amd64
     image: chibor/docker-webserver-dev:latest
     ports:
       - "${WEBSERVER_PORT:-80}:80"
